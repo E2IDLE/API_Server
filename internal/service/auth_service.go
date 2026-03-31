@@ -1,14 +1,14 @@
 package service
 
 import (
+	"API_Server/internal/model"
+	"API_Server/internal/repository"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"time"
 
-	"github.com/E2IDLE/API_Server/internal/model"
-	"github.com/E2IDLE/API_Server/internal/repository"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )

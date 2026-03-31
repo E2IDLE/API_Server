@@ -1,14 +1,14 @@
 package handler
 
 import (
+	"API_Server/internal/model"
+	"API_Server/internal/repository"
+	"API_Server/internal/ws"
 	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/E2IDLE/API_Server/internal/model"
-	"github.com/E2IDLE/API_Server/internal/repository"
-	"github.com/E2IDLE/API_Server/internal/ws"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )

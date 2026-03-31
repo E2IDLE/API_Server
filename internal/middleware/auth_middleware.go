@@ -1,11 +1,11 @@
 package middleware
 
 import (
+	"API_Server/internal/model"
+	"API_Server/internal/repository"
 	"net/http"
 	"strings"
 
-	"github.com/E2IDLE/API_Server/internal/model"
-	"github.com/E2IDLE/API_Server/internal/repository"
 	"github.com/gin-gonic/gin"
 )
 

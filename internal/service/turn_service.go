@@ -1,14 +1,14 @@
 package service
 
 import (
+	"API_Server/internal/config"
+	"API_Server/internal/model"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
 	"time"
-
-	"github.com/E2IDLE/API_Server/internal/config"
-	"github.com/E2IDLE/API_Server/internal/model"
+	//"honnef.co/go/tools/config"
 )
 
 type TurnService struct {

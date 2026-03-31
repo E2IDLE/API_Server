@@ -1,11 +1,12 @@
 package handler
 
 import (
+	"API_Server/internal/model"
+	"API_Server/internal/service"
 	"net/http"
 
-	"github.com/E2IDLE/API_Server/internal/model"
-	"github.com/E2IDLE/API_Server/internal/service"
-	"github.com/E2IDLE/API_Server/internal/ws"
+	"API_Server/internal/ws"
+
 	"github.com/gin-gonic/gin"
 )
 
