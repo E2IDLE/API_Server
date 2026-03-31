@@ -42,5 +42,4 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
-	honnef.co/go/tools v0.7.0 // indirect
 )

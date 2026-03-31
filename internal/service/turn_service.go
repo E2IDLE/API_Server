@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"time"
-	//"honnef.co/go/tools/config"
 )
 
 type TurnService struct {
