@@ -34,8 +34,6 @@ tags:
     description: 에이전트(데스크톱 클라이언트) 등록 및 조회
   - name: Sessions
     description: P2P 전송 세션 생성, 참가, 조회, 삭제, 이력
-  - name: Candidates
-    description: ICE Candidate 등록 및 조회
   - name: TURN
     description: TURN 서버 자격증명 발급
   - name: WebSocket
@@ -834,7 +832,7 @@ components:
     # 참조: POST /users/me/agents requestBody
     RegisterAgentRequest:
       type: object
-      required: [deviceName, platform, agentVersion]
+      required: [deviceName, platform, agentVersion, multiaddress]
       properties:
         deviceName:
           type: string
@@ -854,12 +852,16 @@ components:
           type: string
           description: 에이전트 소프트웨어 버전
           example: "1.2.0"
+        multiaddress:
+          type: string
+          description: libp2p멀티주소
+          example: "127.0.0.1/::/.."
 
     # ── 9. Agent ──────────────────────────────
     # 참조: POST /users/me/agents 201, GET /users/me/agents 200 items
     Agent:
       type: object
-      required: [agentId, deviceName, platform, agentVersion, registeredAt, lastSeenAt, status]
+      required: [agentId, deviceName, platform, agentVersion, registeredAt, lastSeenAt, status, multiaddress]
       properties:
         agentId:
           type: string
@@ -897,6 +899,10 @@ components:
             - `online`: 현재 연결됨
             - `offline`: 연결되지 않음
           example: "online"
+        multiaddress:
+          type: string
+          description: libp2p멀티주소
+          example: "127.0.0.1/::/.."
 
     # ── 10. Session ───────────────────────────
     # 참조: POST /sessions 201, POST /sessions/{id}/join 200,
