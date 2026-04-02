@@ -19,8 +19,8 @@ type SessionHandler struct {
 	userSvc    *service.UserService
 }
 
-func NewSessionHandler(sessionSvc *service.SessionService, hub *ws.Hub) *SessionHandler {
-	return &SessionHandler{sessionSvc: sessionSvc, hub: hub}
+func NewSessionHandler(sessionSvc *service.SessionService, hub *ws.Hub, userSvc *service.UserService) *SessionHandler {
+	return &SessionHandler{sessionSvc: sessionSvc, hub: hub, userSvc: userSvc}
 }
 
 // POST /sessions + 토큰
@@ -65,12 +65,18 @@ func (h *SessionHandler) JoinSession(c *gin.Context) {
 	}
 
 	// WebSocket 알림
+	profile, err2 := h.userSvc.GetProfile(c.Request.Context(), userID.(string))
+	nickname := ""
+	if err2 == nil && profile != nil {
+		nickname = profile.Nickname
+	}
 	h.hub.BroadcastToSession(session.SenderID, model.WSMessage{
 		Event: "session:peer_joined",
 		Data: map[string]interface{}{
 			"sessionId":    session.SessionID,
+			"inviteCode":   session.InviteCode,
 			"peerId":       userID.(string),
-			"peerNickname": "", // 세션에 참여한 사용자의 닉네임
+			"peerNickname": nickname,
 		},
 	})
 

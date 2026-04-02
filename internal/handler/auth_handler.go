@@ -1,5 +1,7 @@
 package handler
 
+//auth_handler.go 는 사용자 등록, 로그인, 로그아웃, 계정 삭제 및 비밀번호 변경 기능을 담당하는 핸들러입니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/service"

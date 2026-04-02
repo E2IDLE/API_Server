@@ -1,5 +1,7 @@
 package handler
 
+//agent_handler.go 는 사용자 에이전트 등록 및 조회 기능을 담당하는 핸들러입니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/service"

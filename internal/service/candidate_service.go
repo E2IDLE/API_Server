@@ -1,5 +1,7 @@
 package service
 
+// CandidateService 는 WebRTC 후보지 등록 및 조회 기능을 담당하는 서비스입니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/repository"

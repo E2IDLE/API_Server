@@ -1,5 +1,7 @@
 package router
 
+// router.go 는 Gin 라우터 설정을 담당하는 패키지입니다.
+
 import (
 	"API_Server/internal/handler"
 	"API_Server/internal/middleware"

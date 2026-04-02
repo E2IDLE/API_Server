@@ -1,5 +1,7 @@
 package ws
 
+// hub.go 는 WebSocket 클라이언트 관리 및 메시지 브로드캐스팅을 담당하는 허브입니다.
+
 import (
 	"API_Server/internal/model"
 	"encoding/json"

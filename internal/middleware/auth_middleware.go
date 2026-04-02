@@ -1,5 +1,7 @@
 package middleware
 
+// AuthMiddleware 는 인증이 필요한 라우트에 적용되는 미들웨어입니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/repository"

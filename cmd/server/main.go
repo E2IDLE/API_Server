@@ -52,7 +52,7 @@ func main() {
 	authH := handler.NewAuthHandler(authSvc)
 	userH := handler.NewUserHandler(userSvc)
 	agentH := handler.NewAgentHandler(agentSvc)
-	sessionH := handler.NewSessionHandler(sessionSvc, hub)
+	sessionH := handler.NewSessionHandler(sessionSvc, hub, userSvc)
 	candidateH := handler.NewCandidateHandler(candidateSvc, hub)
 	turnH := handler.NewTurnHandler(turnSvc)
 	wsH := handler.NewWSHandler(hub, tokenRepo, sessionSvc)
