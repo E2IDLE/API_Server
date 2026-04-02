@@ -1,6 +1,6 @@
 package handler
 
-//Turn_handler.go 는 TURN 서버 자격 증명 발급 기능을 담당하는 핸들러입니다.
+//Turn_handler.go 는 TURN 서버 자격 증명 발급 기능을 담당하는 핸들러
 
 import (
 	"API_Server/internal/model"

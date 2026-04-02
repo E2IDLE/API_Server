@@ -59,7 +59,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// POST /auth/logout
+// POST /auth/logout 로그아웃
 func (h *AuthHandler) Logout(c *gin.Context) {
 	token, _ := c.Get("token")
 	if err := h.authSvc.Logout(c.Request.Context(), token.(string)); err != nil {

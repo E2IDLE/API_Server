@@ -16,6 +16,7 @@ import (
 type SessionHandler struct {
 	sessionSvc *service.SessionService
 	hub        *ws.Hub
+	userSvc    *service.UserService
 }
 
 func NewSessionHandler(sessionSvc *service.SessionService, hub *ws.Hub) *SessionHandler {
@@ -69,7 +70,7 @@ func (h *SessionHandler) JoinSession(c *gin.Context) {
 		Data: map[string]interface{}{
 			"sessionId":    session.SessionID,
 			"peerId":       userID.(string),
-			"peerNickname": "",
+			"peerNickname": "", // 세션에 참여한 사용자의 닉네임
 		},
 	})
 

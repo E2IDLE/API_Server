@@ -164,7 +164,7 @@ func (s *SessionService) destroySession(sessionID string) {
 	log.Printf("세션 자동 소멸 완료: %s", sessionID)
 }
 
-// ★ 세션 상태 변경 + 자동 소멸 ★
+// 세션 상태 변경 + 자동 소멸
 func (s *SessionService) UpdateStatus(ctx context.Context, sessionID, status string) error {
 	if err := s.sessionRepo.UpdateStatus(ctx, sessionID, status); err != nil {
 		return err
