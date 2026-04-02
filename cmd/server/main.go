@@ -17,8 +17,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mattn/go-sqlite3"
 )
 
+ db = database.InitDB()
 func main() {
 	cfg := config.Load()
 	// ── DB 연결 ──
