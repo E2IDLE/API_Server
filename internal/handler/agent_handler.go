@@ -5,6 +5,7 @@ package handler
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/service"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,14 +39,17 @@ func (h *AgentHandler) RegisterAgent(c *gin.Context) {
 
 // GET /users/me/agents
 func (h *AgentHandler) ListAgents(c *gin.Context) {
-	userID, _ := c.Get("userID")
+	userID, exists := c.Get("userID")
+	log.Printf("ListAgents 호출 - userID: %v, exists: %v", userID, exists)
 
 	agents, err := h.agentSvc.ListAgents(c.Request.Context(), userID.(string))
 	if err != nil {
+		log.Printf("ListAgents error: %v", err)
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Code: "INTERNAL", Message: "서버 오류"})
 		return
 	}
 
+	log.Printf("ListAgents 결과: %d건", len(agents))
 	if agents == nil {
 		agents = []model.Agent{}
 	}
