@@ -29,7 +29,7 @@ func (s *AgentService) RegisterAgent(ctx context.Context, userID string, req mod
 		MultiAddress: &req.MultiAddress,
 		RegisteredAt: now,
 		LastSeenAt:   &now,
-		Status:       "offline",
+		Status:       "online",
 	}
 
 	if err := s.agentRepo.Create(ctx, userID, agent); err != nil {
