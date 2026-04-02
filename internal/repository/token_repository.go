@@ -18,7 +18,7 @@ func NewTokenRepository(db *sql.DB) *TokenRepository {
 func (r *TokenRepository) Create(ctx context.Context, token *model.AuthToken) error {
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO auth_tokens (token, user_id, expires_at) VALUES (?, ?, ?)`,
-		token.Token, token.UserID, token.ExpiresAt,
+		token.Token, token.UserID, token.ExpiresAt.Format("2006-01-02 15:04:05"),
 	)
 	return err
 }
