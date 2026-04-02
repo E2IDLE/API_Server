@@ -32,6 +32,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("DB 연결 실패: %v", err)
 	}
+
+	if err := pool.Ping(context.Background()); err != nil {
+		log.Fatalf("DB Ping 실패: %v", err)
+	}
+
+	log.Println("PostgreSQL 연결 성공")
 	defer pool.Close()
 
 	// ── Repository ──
