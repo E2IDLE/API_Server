@@ -26,8 +26,10 @@ func (r *AgentRepository) Create(ctx context.Context, userID string, agent *mode
 
 func (r *AgentRepository) FindByUserID(ctx context.Context, userID string) ([]model.Agent, error) {
 	rows, err := r.db.QueryContext(ctx,
-		`SELECT agent_id, device_name, platform, agent_version, multiaddress, registered_at, last_seen_at, status
-		 FROM agents WHERE user_id = ? ORDER BY registered_at DESC`, userID,
+		`SELECT agent_id, device_name, platform, agent_version, 
+     COALESCE(multiaddress, ''), registered_at, 
+     COALESCE(last_seen_at, registered_at), status
+     FROM agents WHERE user_id = ? ORDER BY registered_at DESC`, userID,
 	)
 	if err != nil {
 		return nil, err
