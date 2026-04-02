@@ -73,15 +73,14 @@ type RegisterAgentRequest struct {
 
 // 9. Agent
 type Agent struct {
-	AgentID      string    `json:"agentId"`
-	DeviceName   string    `json:"deviceName"`
-	Platform     string    `json:"platform"`
-	AgentVersion string    `json:"agentVersion"`
-	RegisteredAt time.Time `json:"registeredAt"`
-	LastSeenAt   time.Time `json:"lastSeenAt"`
-	MultiAddress string    `json:"multiaddress"`
-
-	Status string `json:"status"` // online | offline
+	AgentID      string     `json:"agentId"`
+	DeviceName   string     `json:"deviceName"`
+	Platform     string     `json:"platform"`
+	AgentVersion string     `json:"agentVersion"`
+	RegisteredAt time.Time  `json:"registeredAt"`
+	LastSeenAt   *time.Time `json:"lastSeenAt"`   // NULL 허용
+	MultiAddress *string    `json:"multiaddress"` // NULL 허용
+	Status       string     `json:"status"`
 }
 
 // ══════════════════════════════════════

@@ -118,7 +118,7 @@ func (h *WSHandler) readPump(client *ws.Client) {
 
 				if status == "completed" || status == "error" {
 					go h.sessionSvc.UpdateStatus(
-						context.Background(), sessionID, status, // ← 쉼표 추가
+						context.Background(), sessionID, status,
 					)
 				}
 			}
