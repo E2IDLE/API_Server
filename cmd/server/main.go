@@ -40,7 +40,7 @@ func main() {
 	authSvc := service.NewAuthService(userRepo, tokenRepo)
 	userSvc := service.NewUserService(userRepo)
 	agentSvc := service.NewAgentService(agentRepo)
-	sessionSvc := service.NewSessionService(sessionRepo, tokenRepo)
+	sessionSvc := service.NewSessionService(sessionRepo)
 	candidateSvc := service.NewCandidateService(candidateRepo)
 	turnSvc := service.NewTurnService(cfg)
 
