@@ -4,6 +4,7 @@ import (
 	"API_Server/internal/model"
 	"context"
 	"database/sql"
+	"time"
 )
 
 type AgentRepository struct {
@@ -27,9 +28,8 @@ func (r *AgentRepository) Create(ctx context.Context, userID string, agent *mode
 func (r *AgentRepository) FindByUserID(ctx context.Context, userID string) ([]model.Agent, error) {
 	rows, err := r.db.QueryContext(ctx,
 		`SELECT agent_id, device_name, platform, agent_version, 
-     COALESCE(multiaddress, ''), registered_at, 
-     COALESCE(last_seen_at, registered_at), status
-     FROM agents WHERE user_id = ? ORDER BY registered_at DESC`, userID,
+		 multiaddress, registered_at, last_seen_at, status
+		 FROM agents WHERE user_id = ? ORDER BY registered_at DESC`, userID,
 	)
 	if err != nil {
 		return nil, err
@@ -39,10 +39,34 @@ func (r *AgentRepository) FindByUserID(ctx context.Context, userID string) ([]mo
 	var agents []model.Agent
 	for rows.Next() {
 		var a model.Agent
+		var registeredAt string
+		var lastSeenAt sql.NullString
+		var multiAddr sql.NullString
+
 		if err := rows.Scan(&a.AgentID, &a.DeviceName, &a.Platform,
-			&a.AgentVersion, &a.MultiAddress, &a.RegisteredAt, &a.LastSeenAt, &a.Status); err != nil {
+			&a.AgentVersion, &multiAddr, &registeredAt, &lastSeenAt, &a.Status); err != nil {
 			return nil, err
 		}
+
+		// 문자열 → time.Time 변환
+		t, err := time.Parse("2006-01-02 15:04:05", registeredAt)
+		if err != nil {
+			return nil, err
+		}
+		a.RegisteredAt = t
+
+		if lastSeenAt.Valid {
+			t2, err := time.Parse("2006-01-02 15:04:05", lastSeenAt.String)
+			if err != nil {
+				return nil, err
+			}
+			a.LastSeenAt = &t2
+		}
+
+		if multiAddr.Valid {
+			a.MultiAddress = &multiAddr.String
+		}
+
 		agents = append(agents, a)
 	}
 	return agents, rows.Err()
