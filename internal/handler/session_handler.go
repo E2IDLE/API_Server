@@ -3,11 +3,10 @@ package handler
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/service"
+	"API_Server/internal/ws"
 	"errors"
 	"net/http"
 	"strconv"
-
-	"API_Server/internal/ws"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,11 +20,12 @@ func NewSessionHandler(sessionSvc *service.SessionService, hub *ws.Hub) *Session
 	return &SessionHandler{sessionSvc: sessionSvc, hub: hub}
 }
 
-// POST /sessions
+// POST /sessions + 토큰
 func (h *SessionHandler) CreateSession(c *gin.Context) {
 	userID, _ := c.Get("userID")
+	token, _ := c.Get("token")
 
-	session, err := h.sessionSvc.CreateSession(c.Request.Context(), userID.(string))
+	session, err := h.sessionSvc.CreateSession(c.Request.Context(), userID.(string), token.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Code: "INTERNAL", Message: "서버 오류"})
 		return
@@ -34,7 +34,7 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 	c.JSON(http.StatusCreated, session)
 }
 
-// POST /sessions/:sessionId/join
+// POST /sessions/:sessionId/join +토큰
 func (h *SessionHandler) JoinSession(c *gin.Context) {
 	sessionID := c.Param("sessionId")
 
@@ -45,7 +45,9 @@ func (h *SessionHandler) JoinSession(c *gin.Context) {
 	}
 
 	userID, _ := c.Get("userID")
-	session, err := h.sessionSvc.JoinSession(c.Request.Context(), sessionID, userID.(string), req)
+	token, _ := c.Get("token")
+
+	session, err := h.sessionSvc.JoinSession(c.Request.Context(), sessionID, userID.(string), token.(string), req)
 	if err != nil {
 		if errors.Is(err, service.ErrSessionNotFound) {
 			c.JSON(http.StatusNotFound, model.ErrorResponse{Code: "NOT_FOUND", Message: err.Error()})
@@ -59,13 +61,13 @@ func (h *SessionHandler) JoinSession(c *gin.Context) {
 		return
 	}
 
-	// WebSocket 알림: session:peer_joined
+	// WebSocket 알림
 	h.hub.BroadcastToSession(session.SenderID, model.WSMessage{
 		Event: "session:peer_joined",
 		Data: map[string]interface{}{
 			"sessionId":    session.SessionID,
 			"peerId":       userID.(string),
-			"peerNickname": "", // TODO: 닉네임 조회
+			"peerNickname": "",
 		},
 	})
 

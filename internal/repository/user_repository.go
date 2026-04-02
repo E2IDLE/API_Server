@@ -72,3 +72,26 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	_, err := r.pool.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
 	return err
 }
+
+// 친구 목록에 회원가입된 모든 회원 조회하기
+func (r *UserRepository) FindAll(ctx context.Context, excludeUserID string) ([]model.User, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT id, email, nickname, profile_image, created_at
+		 FROM users WHERE id != $1
+		 ORDER BY created_at DESC`, excludeUserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []model.User
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.Nickname, &u.ProfileImage, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
+}

@@ -20,14 +20,15 @@ func (r *AgentRepository) Create(ctx context.Context, userID string, agent *mode
 		`INSERT INTO agents (agent_id, user_id, device_name, platform, agent_version, registered_at, last_seen_at, status)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		agent.AgentID, userID, agent.DeviceName, agent.Platform,
-		agent.AgentVersion, agent.RegisteredAt, agent.LastSeenAt, agent.Status,
+		agent.AgentVersion, agent.MultiAddress, agent.RegisteredAt, agent.LastSeenAt, agent.Status,
 	)
 	return err
 }
 
+// FindByUserID
 func (r *AgentRepository) FindByUserID(ctx context.Context, userID string) ([]model.Agent, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT agent_id, device_name, platform, agent_version, registered_at, last_seen_at, status
+		`SELECT agent_id, device_name, platform, agent_version, multiaddress, registered_at, last_seen_at, status
 		 FROM agents WHERE user_id = $1 ORDER BY registered_at DESC`, userID,
 	)
 	if err != nil {

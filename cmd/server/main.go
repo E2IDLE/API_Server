@@ -39,7 +39,7 @@ func main() {
 	authSvc := service.NewAuthService(userRepo, tokenRepo)
 	userSvc := service.NewUserService(userRepo)
 	agentSvc := service.NewAgentService(agentRepo)
-	sessionSvc := service.NewSessionService(sessionRepo)
+	sessionSvc := service.NewSessionService(sessionRepo, tokenRepo)
 	candidateSvc := service.NewCandidateService(candidateRepo)
 	turnSvc := service.NewTurnService(cfg)
 
@@ -54,7 +54,7 @@ func main() {
 	sessionH := handler.NewSessionHandler(sessionSvc, hub)
 	candidateH := handler.NewCandidateHandler(candidateSvc, hub)
 	turnH := handler.NewTurnHandler(turnSvc)
-	wsH := handler.NewWSHandler(hub, tokenRepo)
+	wsH := handler.NewWSHandler(hub, tokenRepo, sessionSvc)
 
 	// ── Middleware ──
 	authMw := middleware.NewAuthMiddleware(tokenRepo)

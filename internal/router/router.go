@@ -40,6 +40,7 @@ func Setup(
 	{
 		users.GET("/me", userH.GetProfile)
 		users.PUT("/me", userH.UpdateProfile)
+		users.GET("", userH.GetAllUsers)
 
 		// ── Agents (nested) ──
 		users.POST("/me/agents", agentH.RegisterAgent)
