@@ -49,14 +49,14 @@ func (r *AgentRepository) FindByUserID(ctx context.Context, userID string) ([]mo
 		}
 
 		// 문자열 → time.Time 변환
-		t, err := time.Parse("2006-01-02 15:04:05", registeredAt)
+		t, err := time.Parse(time.RFC3339Nano, registeredAt)
 		if err != nil {
 			return nil, err
 		}
 		a.RegisteredAt = t
 
 		if lastSeenAt.Valid {
-			t2, err := time.Parse("2006-01-02 15:04:05", lastSeenAt.String)
+			t2, err := time.Parse(time.RFC3339Nano, lastSeenAt.String)
 			if err != nil {
 				return nil, err
 			}
