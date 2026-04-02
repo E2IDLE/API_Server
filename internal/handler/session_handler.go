@@ -28,10 +28,31 @@ func (h *SessionHandler) CreateSession(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	token, _ := c.Get("token")
 
+	var req model.CreateSessionRequest
+	_ = c.ShouldBindJSON(&req) // body 없어도 허용
+
 	session, err := h.sessionSvc.CreateSession(c.Request.Context(), userID.(string), token.(string))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Code: "INTERNAL", Message: "서버 오류"})
 		return
+	}
+
+	// 대상 유저가 지정된 경우 WebSocket으로 연결 신청 알림 전송
+	if req.UserID != "" {
+		senderProfile, err2 := h.userSvc.GetProfile(c.Request.Context(), userID.(string))
+		senderNickname := ""
+		if err2 == nil && senderProfile != nil {
+			senderNickname = senderProfile.Nickname
+		}
+		h.hub.BroadcastToSession(req.UserID, model.WSMessage{
+			Event: "session:connection_request",
+			Data: map[string]interface{}{
+				"sessionId":      session.SessionID,
+				"inviteCode":     session.InviteCode,
+				"senderId":       userID.(string),
+				"senderNickname": senderNickname,
+			},
+		})
 	}
 
 	c.JSON(http.StatusCreated, session)

@@ -101,6 +101,11 @@ type Session struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
+//. CreateSessionRequest 연결 신청 요청
+type CreateSessionRequest struct {
+	UserID string `json:"userId"` // 연결 신청 대상 유저 ID (선택)
+}
+
 // 11. JoinSessionRequest
 type JoinSessionRequest struct {
 	InviteCode string `json:"inviteCode" binding:"required"`
