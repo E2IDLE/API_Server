@@ -1,5 +1,7 @@
 package handler
 
+//Session_handler.go 는 세션 생성, 참여, 조회, 삭제 및 세션 기록 조회 기능을 담당하는 핸들러입니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/service"

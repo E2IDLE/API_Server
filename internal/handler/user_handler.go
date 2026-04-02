@@ -1,5 +1,7 @@
 package handler
 
+//user_handler.go 는 사용자 프로필 조회 및 업데이트, 전체 사용자 목록 조회 등의 기능을 담당하는 핸들러입니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/service"

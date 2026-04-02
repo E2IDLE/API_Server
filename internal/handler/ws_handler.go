@@ -1,5 +1,7 @@
 package handler
 
+//WebSocket 핸들러는 클라이언트와의 WebSocket 연결을 관리하고, 메시지를 주고받는 역할을 합니다.
+
 import (
 	"API_Server/internal/model"
 	"API_Server/internal/repository"
