@@ -3,72 +3,92 @@ package repository
 import (
 	"API_Server/internal/model"
 	"context"
+	"database/sql"
 	"errors"
-
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepository struct {
-	pool *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
-	return &UserRepository{pool: pool}
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
-	_, err := r.pool.Exec(ctx,
+	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO users (id, email, password_hash, nickname, created_at)
-		 VALUES ($1, $2, $3, $4, $5)`,
+		 VALUES (?, ?, ?, ?, ?)`,
 		user.ID, user.Email, user.PasswordHash, user.Nickname, user.CreatedAt,
 	)
 	return err
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
-	row := r.pool.QueryRow(ctx,
+	row := r.db.QueryRowContext(ctx,
 		`SELECT id, email, password_hash, nickname, profile_image, created_at
-		 FROM users WHERE email = $1`, email,
+		 FROM users WHERE email = ?`, email,
 	)
 	u := &model.User{}
 	err := row.Scan(&u.ID, &u.Email, &u.PasswordHash, &u.Nickname, &u.ProfileImage, &u.CreatedAt)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return u, err
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
-	row := r.pool.QueryRow(ctx,
+	row := r.db.QueryRowContext(ctx,
 		`SELECT id, email, password_hash, nickname, profile_image, created_at
-		 FROM users WHERE id = $1`, id,
+		 FROM users WHERE id = ?`, id,
 	)
 	u := &model.User{}
 	err := row.Scan(&u.ID, &u.Email, &u.PasswordHash, &u.Nickname, &u.ProfileImage, &u.CreatedAt)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return u, err
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *model.User) error {
-	_, err := r.pool.Exec(ctx,
-		`UPDATE users SET nickname = $1, profile_image = $2 WHERE id = $3`,
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE users SET nickname = ?, profile_image = ? WHERE id = ?`,
 		user.Nickname, user.ProfileImage, user.ID,
 	)
 	return err
 }
 
 func (r *UserRepository) UpdatePassword(ctx context.Context, userID, passwordHash string) error {
-	_, err := r.pool.Exec(ctx,
-		`UPDATE users SET password_hash = $1 WHERE id = $2`,
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE users SET password_hash = ? WHERE id = ?`,
 		passwordHash, userID,
 	)
 	return err
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.pool.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
+	_, err := r.db.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, id)
 	return err
+}
+
+func (r *UserRepository) FindAll(ctx context.Context, excludeUserID string) ([]model.User, error) {
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT id, email, nickname, profile_image, created_at
+		 FROM users WHERE id != ?
+		 ORDER BY created_at DESC`, excludeUserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []model.User
+	for rows.Next() {
+		var u model.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.Nickname, &u.ProfileImage, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, rows.Err()
 }

@@ -24,6 +24,7 @@ func (s *AgentService) RegisterAgent(ctx context.Context, userID string, req mod
 		DeviceName:   req.DeviceName,
 		Platform:     req.Platform,
 		AgentVersion: req.AgentVersion,
+		MultiAddress: req.MultiAddress,
 		RegisteredAt: now,
 		LastSeenAt:   now,
 		Status:       "offline",

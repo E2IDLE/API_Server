@@ -46,3 +46,19 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, profile)
 }
+
+// GET /users
+func (h *UserHandler) GetAllUsers(c *gin.Context) {
+	userID, _ := c.Get("userID")
+
+	users, err := h.userSvc.GetAllUsers(c.Request.Context(), userID.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Code: "INTERNAL", Message: "서버 오류"})
+		return
+	}
+
+	if users == nil {
+		users = []model.UsersProfile{}
+	}
+	c.JSON(http.StatusOK, users)
+}

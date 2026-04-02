@@ -2,6 +2,7 @@ package main
 
 import (
 	"API_Server/internal/config"
+	"API_Server/internal/database"
 	"API_Server/internal/handler"
 	"API_Server/internal/middleware"
 	"API_Server/internal/repository"
@@ -17,43 +18,29 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	_ "modernc.org/sqlite"
 )
 
 func main() {
-	sqliteDB := initSQLite()
-	defer sqliteDB.Close()
-	createTables(sqliteDB)
+	// ── SQLite 연결 ──
+	db := initSQLite()
+	defer db.Close()
+	database.RunMigrations(db)
 
 	cfg := config.Load()
 
-	// ── DB 연결 ──
-	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
-	if err != nil {
-		log.Fatalf("DB 연결 실패: %v", err)
-	}
-
-	if err := pool.Ping(context.Background()); err != nil {
-		log.Fatalf("DB Ping 실패: %v", err)
-	}
-
-	log.Println("PostgreSQL 연결 성공")
-	defer pool.Close()
-
 	// ── Repository ──
-	userRepo := repository.NewUserRepository(pool)
-	tokenRepo := repository.NewTokenRepository(pool)
-	agentRepo := repository.NewAgentRepository(pool)
-	sessionRepo := repository.NewSessionRepository(pool)
-	candidateRepo := repository.NewCandidateRepository(pool)
-
-	_ = repository.NewChatLogRepository(sqliteDB)
+	userRepo := repository.NewUserRepository(db)
+	tokenRepo := repository.NewTokenRepository(db)
+	agentRepo := repository.NewAgentRepository(db)
+	sessionRepo := repository.NewSessionRepository(db)
+	candidateRepo := repository.NewCandidateRepository(db)
 
 	// ── Service ──
 	authSvc := service.NewAuthService(userRepo, tokenRepo)
 	userSvc := service.NewUserService(userRepo)
 	agentSvc := service.NewAgentService(agentRepo)
-	sessionSvc := service.NewSessionService(sessionRepo)
+	sessionSvc := service.NewSessionService(sessionRepo, tokenRepo)
 	candidateSvc := service.NewCandidateService(candidateRepo)
 	turnSvc := service.NewTurnService(cfg)
 
@@ -68,7 +55,7 @@ func main() {
 	sessionH := handler.NewSessionHandler(sessionSvc, hub)
 	candidateH := handler.NewCandidateHandler(candidateSvc, hub)
 	turnH := handler.NewTurnHandler(turnSvc)
-	wsH := handler.NewWSHandler(hub, tokenRepo)
+	wsH := handler.NewWSHandler(hub, tokenRepo, sessionSvc)
 
 	// ── Middleware ──
 	authMw := middleware.NewAuthMiddleware(tokenRepo)
@@ -106,35 +93,16 @@ func main() {
 func initSQLite() *sql.DB {
 	_ = os.MkdirAll("data", os.ModePerm)
 
-	db, err := sql.Open("sqlite3", "./data/app.db")
+	db, err := sql.Open("sqlite", "./data/app.db")
 	if err != nil {
 		log.Fatal("sqlite open error:", err)
 	}
-
 	if err := db.Ping(); err != nil {
 		log.Fatal("sqlite ping error:", err)
 	}
 
+	db.SetMaxOpenConns(1) // SQLite 동시 쓰기 방지
+
 	log.Println("SQLite connected")
 	return db
-}
-
-func createTables(db *sql.DB) {
-	queries := []string{
-		`CREATE TABLE IF NOT EXISTS chat_logs (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			session_id TEXT NOT NULL,
-			role TEXT NOT NULL,
-			content TEXT NOT NULL,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-		);`,
-		// 필요한 테이블 여기에 추가
-	}
-
-	for _, q := range queries {
-		if _, err := db.Exec(q); err != nil {
-			log.Fatalf("테이블 생성 실패: %v", err)
-		}
-	}
-	log.Println("SQLite 테이블 생성 완료")
 }

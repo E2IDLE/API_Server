@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
+	"log"
 	"math/big"
 	"time"
 
@@ -20,22 +21,25 @@ var (
 
 type SessionService struct {
 	sessionRepo *repository.SessionRepository
+	tokenRepo   *repository.TokenRepository
 }
 
-func NewSessionService(sessionRepo *repository.SessionRepository) *SessionService {
-	return &SessionService{sessionRepo: sessionRepo}
+func NewSessionService(sessionRepo *repository.SessionRepository, tokenRepo *repository.TokenRepository) *SessionService {
+	return &SessionService{sessionRepo: sessionRepo,
+		tokenRepo: tokenRepo}
 }
 
-func (s *SessionService) CreateSession(ctx context.Context, userID string) (*model.Session, error) {
+func (s *SessionService) CreateSession(ctx context.Context, userID, token string) (*model.Session, error) {
 	now := time.Now().UTC()
 	session := &model.Session{
-		SessionID:  uuid.New().String(),
-		InviteCode: generateInviteCode(6),
-		Status:     "waiting",
-		SenderID:   userID,
-		ReceiverID: nil,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		SessionID:   uuid.New().String(),
+		InviteCode:  generateInviteCode(6),
+		Status:      "waiting",
+		SenderID:    userID,
+		ReceiverID:  nil,
+		SenderToken: token,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	if err := s.sessionRepo.Create(ctx, session); err != nil {
@@ -44,7 +48,7 @@ func (s *SessionService) CreateSession(ctx context.Context, userID string) (*mod
 	return session, nil
 }
 
-func (s *SessionService) JoinSession(ctx context.Context, sessionID, userID string, req model.JoinSessionRequest) (*model.Session, error) {
+func (s *SessionService) JoinSession(ctx context.Context, sessionID, userID, token string, req model.JoinSessionRequest) (*model.Session, error) {
 	session, err := s.sessionRepo.FindByID(ctx, sessionID)
 	if err != nil {
 		return nil, err
@@ -56,7 +60,7 @@ func (s *SessionService) JoinSession(ctx context.Context, sessionID, userID stri
 		return nil, ErrInvalidInvite
 	}
 
-	if err := s.sessionRepo.UpdateReceiver(ctx, sessionID, userID, "connecting"); err != nil {
+	if err := s.sessionRepo.UpdateReceiver(ctx, sessionID, userID, token, "connecting"); err != nil {
 		return nil, err
 	}
 
@@ -132,4 +136,44 @@ func generateInviteCode(length int) string {
 		code[i] = charset[n.Int64()]
 	}
 	return string(code)
+}
+
+func (s *SessionService) destroySession(sessionID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	session, err := s.sessionRepo.FindByID(ctx, sessionID)
+	if err != nil || session == nil {
+		return
+	}
+
+	log.Printf("세션 자동 소멸 시작: %s", sessionID)
+
+	// 송신자 토큰 삭제
+	if session.SenderToken != "" {
+		s.tokenRepo.DeleteByToken(ctx, session.SenderToken)
+	}
+
+	// 수신자 토큰 삭제
+	if session.ReceiverToken != "" {
+		s.tokenRepo.DeleteByToken(ctx, session.ReceiverToken)
+	}
+
+	// 세션 삭제
+	s.sessionRepo.Delete(ctx, sessionID)
+	log.Printf("세션 자동 소멸 완료: %s", sessionID)
+}
+
+// ★ 세션 상태 변경 + 자동 소멸 ★
+func (s *SessionService) UpdateStatus(ctx context.Context, sessionID, status string) error {
+	if err := s.sessionRepo.UpdateStatus(ctx, sessionID, status); err != nil {
+		return err
+	}
+
+	// "completed" 또는 "error" → 자동 소멸
+	if status == "completed" || status == "error" {
+		go s.destroySession(sessionID)
+	}
+
+	return nil
 }

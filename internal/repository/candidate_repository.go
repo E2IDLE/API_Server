@@ -3,31 +3,30 @@ package repository
 import (
 	"API_Server/internal/model"
 	"context"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"database/sql"
 )
 
 type CandidateRepository struct {
-	pool *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewCandidateRepository(pool *pgxpool.Pool) *CandidateRepository {
-	return &CandidateRepository{pool: pool}
+func NewCandidateRepository(db *sql.DB) *CandidateRepository {
+	return &CandidateRepository{db: db}
 }
 
 func (r *CandidateRepository) Create(ctx context.Context, c *model.Candidate) error {
-	_, err := r.pool.Exec(ctx,
+	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO candidates (candidate_id, session_id, user_id, type, ip, port, protocol, created_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		c.CandidateID, c.SessionID, c.UserID, c.Type, c.IP, c.Port, c.Protocol, c.CreatedAt,
 	)
 	return err
 }
 
 func (r *CandidateRepository) FindBySessionID(ctx context.Context, sessionID string) ([]model.Candidate, error) {
-	rows, err := r.pool.Query(ctx,
+	rows, err := r.db.QueryContext(ctx,
 		`SELECT candidate_id, session_id, user_id, type, ip, port, protocol, created_at
-		 FROM candidates WHERE session_id = $1 ORDER BY created_at ASC`, sessionID,
+		 FROM candidates WHERE session_id = ? ORDER BY created_at ASC`, sessionID,
 	)
 	if err != nil {
 		return nil, err
@@ -43,5 +42,5 @@ func (r *CandidateRepository) FindBySessionID(ctx context.Context, sessionID str
 		}
 		candidates = append(candidates, c)
 	}
-	return candidates, nil
+	return candidates, rows.Err()
 }

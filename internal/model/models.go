@@ -43,19 +43,20 @@ type ChangePasswordRequest struct {
 // ══════════════════════════════════════
 
 // 6. UserProfile
-type UserProfile struct {
+// API 응답용 구조체
+type UsersProfile struct {
 	ID           string    `json:"id"`
 	Email        string    `json:"email"`
 	Nickname     string    `json:"nickname"`
-	ProfileImage *string   `json:"profileImage"` // nullable
+	ProfileImage *string   `json:"profileImage"`
 	CreatedAt    time.Time `json:"createdAt"`
-	AgentStatus  string    `json:"agentStatus"` // online | offline
+	AgentStatus  string    `json:"agentStatus"`
 }
 
-// 7. UpdateProfileRequest
+// 프로필 수정 요청
 type UpdateProfileRequest struct {
-	Nickname     *string `json:"nickname" binding:"omitempty,min=2,max=30"`
-	ProfileImage *string `json:"profileImage"` // nullable → null이면 삭제
+	Nickname     *string `json:"nickname"`
+	ProfileImage *string `json:"profileImage"`
 }
 
 // ══════════════════════════════════════
@@ -67,6 +68,7 @@ type RegisterAgentRequest struct {
 	DeviceName   string `json:"deviceName" binding:"required,max=100"`
 	Platform     string `json:"platform" binding:"required,oneof=windows macos linux"`
 	AgentVersion string `json:"agentVersion" binding:"required"`
+	MultiAddress string `json:"multiaddress" binding:"required" `
 }
 
 // 9. Agent
@@ -77,7 +79,9 @@ type Agent struct {
 	AgentVersion string    `json:"agentVersion"`
 	RegisteredAt time.Time `json:"registeredAt"`
 	LastSeenAt   time.Time `json:"lastSeenAt"`
-	Status       string    `json:"status"` // online | offline
+	MultiAddress string    `json:"multiaddress"`
+
+	Status string `json:"status"` // online | offline
 }
 
 // ══════════════════════════════════════
@@ -86,13 +90,15 @@ type Agent struct {
 
 // 10. Session
 type Session struct {
-	SessionID  string    `json:"sessionId"`
-	InviteCode string    `json:"inviteCode"`
-	Status     string    `json:"status"` // waiting | connecting | connected | completed | error
-	SenderID   string    `json:"senderId"`
-	ReceiverID *string   `json:"receiverId"` // nullable
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	SessionID     string    `json:"sessionId"`
+	InviteCode    string    `json:"inviteCode"`
+	Status        string    `json:"status"` // 상태
+	SenderID      string    `json:"senderId"`
+	ReceiverID    *string   `json:"receiverId"` // nullable
+	SenderToken   string    `json:"-"`
+	ReceiverToken string    `json:"-"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 // 11. JoinSessionRequest
@@ -172,16 +178,25 @@ type WSMessage struct {
 // ── DB 내부 모델 (password hash 등) ──
 
 type User struct {
-	ID           string
-	Email        string
-	PasswordHash string
-	Nickname     string
-	ProfileImage *string
-	CreatedAt    time.Time
+	ID           string    `json:"id" gorm:"primaryKey"`
+	Username     string    `json:"username" gorm:"unique;not null"`
+	Email        string    `json:"email" gorm:"unique;not null"`
+	Nickname     string    `json:"nickname"`
+	ProfileImage *string   `json:"profileImage"`
+	PasswordHash string    `json:"-"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type AuthToken struct {
 	Token     string
 	UserID    string
 	ExpiresAt time.Time
+}
+
+//친구 추가 및 기존 유저 관련
+type Friend struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	UserID    uint      `json:"user_id" gorm:"not null;index"`
+	FriendID  uint      `json:"friend_id" gorm:"not null;index"`
+	CreatedAt time.Time `json:"created_at"`
 }

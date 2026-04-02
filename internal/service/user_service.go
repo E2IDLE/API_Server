@@ -14,13 +14,13 @@ func NewUserService(userRepo *repository.UserRepository) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
-func (s *UserService) GetProfile(ctx context.Context, userID string) (*model.UserProfile, error) {
+func (s *UserService) GetProfile(ctx context.Context, userID string) (*model.UsersProfile, error) {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil || user == nil {
 		return nil, err
 	}
 
-	return &model.UserProfile{
+	return &model.UsersProfile{
 		ID:           user.ID,
 		Email:        user.Email,
 		Nickname:     user.Nickname,
@@ -30,7 +30,7 @@ func (s *UserService) GetProfile(ctx context.Context, userID string) (*model.Use
 	}, nil
 }
 
-func (s *UserService) UpdateProfile(ctx context.Context, userID string, req model.UpdateProfileRequest) (*model.UserProfile, error) {
+func (s *UserService) UpdateProfile(ctx context.Context, userID string, req model.UpdateProfileRequest) (*model.UsersProfile, error) {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil || user == nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, req mode
 		return nil, err
 	}
 
-	return &model.UserProfile{
+	return &model.UsersProfile{
 		ID:           user.ID,
 		Email:        user.Email,
 		Nickname:     user.Nickname,
@@ -56,4 +56,24 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID string, req mode
 		CreatedAt:    user.CreatedAt,
 		AgentStatus:  "offline",
 	}, nil
+}
+
+func (s *UserService) GetAllUsers(ctx context.Context, currentUserID string) ([]model.UsersProfile, error) {
+	users, err := s.userRepo.FindAll(ctx, currentUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	var profiles []model.UsersProfile
+	for _, u := range users {
+		profiles = append(profiles, model.UsersProfile{
+			ID:           u.ID,
+			Email:        u.Email,
+			Nickname:     u.Nickname,
+			ProfileImage: u.ProfileImage,
+			CreatedAt:    u.CreatedAt,
+			AgentStatus:  "offline",
+		})
+	}
+	return profiles, nil
 }
